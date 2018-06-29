@@ -17,37 +17,21 @@ from keras.layers.merge import concatenate
 from keras.models import Model, load_model
 from keras.callbacks import ModelCheckpoint, EarlyStopping, CSVLogger
 
-# load dataset
-def get_ids(qids):
-    ids = []
-    for t_ in qids:
-        ids.append(int(t_[1:]))
-    return np.asarray(ids)
-
-def get_texts(file_path, question_path, mode=None):
-    qes = pd.read_csv(question_path)
+# load dataset function
+def get_texts(file_path, mode=None):
     file = pd.read_csv(file_path)
-    q1id, q2id = file['q1'], file['q2']
-    id1s, id2s = get_ids(q1id), get_ids(q2id)
-    all_words = qes['chars']
+    q1, q2 = file['q1'], file['q2']
     texts1 = []
     texts2 = []
-    for t_ in id1s:
-        texts1.append(all_words[t_])
-    for t_ in id2s:
-        texts2.append(all_words[t_])
+    for sent in q1:
+        texts1.append(sent)
+    for sent in q2:
+        texts2.append(sent)
     if mode=='train':
         labels=list(file['label'])
         return np.array(labels), texts1, texts2
     else:
         return texts1, texts2
-
-def make_submission(predict_prob, sub_path):
-    with open(sub_path, 'w') as file:
-        file.write(str('y_pre') + '\n')
-        for line in predict_prob:
-            file.write(str(line[0]) + '\n')
-    file.close()
   
     
     
@@ -63,13 +47,11 @@ mpool_size_2d=[[2,2], [2,2]]
 dropout_rate=0.5
 batch_size=128
 
-TRAIN_PATH = 'mojing/train.csv'
-TEST_PATH = 'mojing/test.csv'
-QUESTION_PATH = 'mojing/question.csv'
-WORD_EMBED='mojing/char_embed.txt'
-model_path='checkpoints/dss_arcii.h5'
+TRAIN_PATH = 'data/train.csv'
+TEST_PATH = 'data/test.csv'
+WORD_EMBED='data/char_embed.txt'
+model_path='checkpoints/arcii.h5'
 log_path='checkpoints/log_arcii.txt'
-sub_path='submission_arcii.csv'
 
 print('Load files...')
 word_embedding = pd.read_csv(WORD_EMBED, header=None, sep=' ')
@@ -77,8 +59,8 @@ word_embed={}
 for i in range(len(word_embedding)):
     word_embed[word_embedding.iloc[i,0]]=list(word_embedding.iloc[i,1:])
 
-all_labels, all_texts1, all_texts2 = get_texts(TRAIN_PATH, QUESTION_PATH, 'train')
-test_texts1, test_texts2 = get_texts(TEST_PATH, QUESTION_PATH, 'test')
+all_labels, all_texts1, all_texts2 = get_texts(TRAIN_PATH, 'train')
+test_texts1, test_texts2 = get_texts(TEST_PATH, 'test')
 
 print('Prepare word embedding...')
 all_texts=all_texts1+all_texts2+test_texts1+test_texts2
@@ -134,7 +116,7 @@ mlp2=Dense(32, activation='relu')(mlp1)
 out=Dense(1, activation='sigmoid')(mlp2)
 
 model=Model(inputs=[query, doc], outputs=out)
-model.compile(optimizer='adam', loss='binary_crossentropy')
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['loss', 'acc'])
 model.summary()
 
 # build dataset generator
@@ -178,4 +160,3 @@ history=model.fit_generator(train_gen, epochs=10, steps_per_epoch=len(train_text
 print('Predict...')
 model=load_model(model_path)
 preds=model.predict_generator(test_gen, steps=len(test_texts1))
-make_submission(preds, sub_path)
