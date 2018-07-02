@@ -19,7 +19,14 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping, CSVLogger
 
 # load dataset function
 def get_texts(file_path, mode=None):
-    file = pd.read_csv(file_path)
+    # read data
+    file = pd.DataFrame(columns=['label','q1','q2'])
+    f=open(file_path, 'r', encoding='utf8')
+    lines=f.readlines()
+    for i, line in enumerate(lines):
+        if i>0:
+            file.loc[i-1]=line.split('\t')
+    f.close()
     q1, q2 = file['q1'], file['q2']
     texts1 = []
     texts2 = []
@@ -35,7 +42,7 @@ def get_texts(file_path, mode=None):
   
     
     
-embed_size=300
+embed_size=50
 text1_maxlen=50
 text2_maxlen=50
 filters_1d=text2_maxlen
@@ -47,9 +54,9 @@ mpool_size_2d=[[2,2], [2,2]]
 dropout_rate=0.5
 batch_size=128
 
-TRAIN_PATH = 'data/train.csv'
-TEST_PATH = 'data/test.csv'
-WORD_EMBED='data/char_embed.txt'
+TRAIN_PATH = 'data/train.txt'
+TEST_PATH = 'data/test.txt'
+WORD_EMBED='data/word_embedding.txt'
 model_path='checkpoints/arcii.h5'
 log_path='checkpoints/log_arcii.txt'
 
@@ -81,9 +88,11 @@ padded_test_texts2=pad_sequences(encoded_test_texts2, maxlen=text1_maxlen, paddi
 # create a weight matrix for words in training docs
 embedding_matrix=np.zeros((vocab_size, embed_size))
 for word, i in t.word_index.items():
-    embedding_vector=word_embed[word]
-    if embedding_vector is not None:
-        embedding_matrix[i]=embedding_vector
+    if word in word_embed.keys():
+        embedding_vector=word_embed[word]
+    else:
+        embedding_vector=np.random.rand(1,embed_size)
+    embedding_matrix[i]=embedding_vector
 
 print('Split train and valid set...')
 sample_size=len(all_labels)*4//5
@@ -116,7 +125,7 @@ mlp2=Dense(32, activation='relu')(mlp1)
 out=Dense(1, activation='sigmoid')(mlp2)
 
 model=Model(inputs=[query, doc], outputs=out)
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['loss', 'acc'])
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
 model.summary()
 
 # build dataset generator
@@ -152,7 +161,7 @@ valid_gen=generator(valid_texts1, valid_texts2, valid_labels, batch_size=batch_s
 test_gen=test_generator(padded_test_texts1, padded_test_texts2, batch_size=1, min_index=0, max_index=len(test_texts1))
 
 print('Train classifier...')
-history=model.fit_generator(train_gen, epochs=10, steps_per_epoch=len(train_texts1)//batch_size,
+history=model.fit_generator(train_gen, epochs=50, steps_per_epoch=len(train_texts1)//batch_size,
                   validation_data=valid_gen, validation_steps=len(valid_texts1)//batch_size, verbose=1,
                   callbacks=[ModelCheckpoint(model_path, monitor='val_loss', mode='min', save_best_only=True), 
                              EarlyStopping(monitor='val_loss', patience=3), CSVLogger(log_path)])
