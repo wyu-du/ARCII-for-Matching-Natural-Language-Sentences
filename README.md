@@ -30,9 +30,10 @@ chief	|-9.01635551 -3.80108356 ... 1.86873138 2.14706421
 $ python arcii.py
 ```
 
-3. Loss and Accuracy
+3. Loss and Accuracy<br>
 A toy data set example copied from <a href='https://github.com/faneshion/MatchZoo/tree/master/data/toy_example'>MatchZoo's toy example</a>
-
+<img src='https://github.com/ddddwy/ARCII-for-Matching-Natural-Language-Sentences/tree/master/img/accuracy.png'>
+<img src='https://github.com/ddddwy/ARCII-for-Matching-Natural-Language-Sentences/tree/master/img/loss.png'>
 
 ## Requirements
 * Python 3.5
@@ -40,6 +41,6 @@ A toy data set example copied from <a href='https://github.com/faneshion/MatchZo
 * Keras 2.1.6
 
 ## To do list
-* [] Negative Sampling<br>
-* [] Mask zero inputs<br>
+* [ ] Negative Sampling<br>
+* [ ] Mask zero inputs<br>
 

@@ -161,11 +161,36 @@ valid_gen=generator(valid_texts1, valid_texts2, valid_labels, batch_size=batch_s
 test_gen=test_generator(padded_test_texts1, padded_test_texts2, batch_size=1, min_index=0, max_index=len(test_texts1))
 
 print('Train classifier...')
-history=model.fit_generator(train_gen, epochs=50, steps_per_epoch=len(train_texts1)//batch_size,
+history=model.fit_generator(train_gen, epochs=20, steps_per_epoch=len(train_texts1)//batch_size,
                   validation_data=valid_gen, validation_steps=len(valid_texts1)//batch_size, verbose=1,
                   callbacks=[ModelCheckpoint(model_path, monitor='val_loss', mode='min', save_best_only=True), 
-                             EarlyStopping(monitor='val_loss', patience=3), CSVLogger(log_path)])
+#                             EarlyStopping(monitor='val_loss', patience=3), 
+                             CSVLogger(log_path)])
 
 print('Predict...')
 model=load_model(model_path)
 preds=model.predict_generator(test_gen, steps=len(test_texts1))
+
+
+print('Plot validation accuracy and loss...')
+import matplotlib.pyplot as plt
+acc=history.history['acc']
+val_acc=history.history['val_acc']
+loss=history.history['loss']
+val_loss=history.history['val_loss']
+
+plt.plot(acc, label='acc')
+plt.plot(val_acc, label='val_acc')
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+plt.plot(loss, label='acc')
+plt.plot(val_loss, label='val_acc')
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
