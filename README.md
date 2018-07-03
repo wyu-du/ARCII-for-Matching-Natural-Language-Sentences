@@ -32,8 +32,8 @@ $ python arcii.py
 
 3. Loss and Accuracy<br>
 A toy data set example copied from <a href='https://github.com/faneshion/MatchZoo/tree/master/data/toy_example'>MatchZoo's toy example</a>
-<img src='https://github.com/ddddwy/ARCII-for-Matching-Natural-Language-Sentences/tree/master/img/accuracy.png'>
-<img src='https://github.com/ddddwy/ARCII-for-Matching-Natural-Language-Sentences/tree/master/img/loss.png'>
+<img src='https://github.com/ddddwy/ARCII-for-Matching-Natural-Language-Sentences/blob/master/img/accuracy.png'>
+<img src='https://github.com/ddddwy/ARCII-for-Matching-Natural-Language-Sentences/blob/master/img/loss.png'>
 
 ## Requirements
 * Python 3.5
